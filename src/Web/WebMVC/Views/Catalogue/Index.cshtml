@@ -1,0 +1,32 @@
+@model WebMVC.ViewModels.CatalogueViewModels.IndexViewModel
+
+@{
+    ViewData["Title"] = "Catalogue";
+}
+
+<section class="esh-catalogue-hero">
+    <div class="container">
+        <img class="esh-catalogue-title" src=""/>
+    </div>
+</section>
+
+<div class="container">
+    @* <div class="row">
+    <section class="col-lg-1 col-xs-12">
+        @await Component.InvokeAsync("Cart")
+    </section> *@
+    </div>
+        @if(Model.CatalogueItems.Count() > 0)
+        {
+            <partial name="_pagination" for="PaginationInfo"/>
+            <div class="esh-catalogue-items row">
+            @foreach (var catalogueItem in Model.CatalogueItems)
+            {
+                <div class="esh-catalogue-item col-md-4">
+                    <partial name="_product" model="catalogueItem"/>
+                </div>
+            }
+            </div>
+            <partial name="_pagination" for="PaginationInfo"/>
+        }
+</div>

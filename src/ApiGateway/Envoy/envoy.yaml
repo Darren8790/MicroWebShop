@@ -1,0 +1,110 @@
+admin:
+  access_log_path: "/dev/null"
+  address:
+    socket_address:
+      address: 0.0.0.0
+      port_value: 9901
+static_resources:
+  listeners:
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: 10000
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          access_log:
+          - name: envoy.access_loggers.stdout
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+          route_config:
+            name: microwebshop_backend_route
+            virtual_hosts:
+            - name: microwebshop_backend
+              domains:
+              - "*"
+              routes:
+              - name: "c-short"
+                match:
+                  prefix: "/c/"
+                route:
+                  auto_host_rewrite: true
+                  prefix_rewrite: "/catalogue/"
+                  cluster: catalogue
+              - name: "c-long"
+                match:
+                  prefix: "/catalogue/"
+                route:
+                  auto_host_rewrite: true
+                  cluster: catalogue
+              - name: "b-short"
+                match:
+                  prefix: "/b/"
+                route:
+                  auto_host_rewrite: true
+                  prefix_rewrite: "/basket/"
+                  cluster: basket
+              - name: "b-long"
+                match:
+                  prefix: "/basket/"
+                route:
+                  auto_host_rewrite: true
+                  cluster: basket
+              - name: "o-short"
+                match:
+                  prefix: "/o/"
+                route:
+                  auto_host_rewrite: true
+                  prefix_rewrite: "/order/"
+                  cluster: order
+              - name: "o-long"
+                match:
+                  prefix: "/order/"
+                route:
+                  auto_host_rewrite: true
+                  cluster: order
+          http_filters:
+          - name: envoy.filters.http.router
+  clusters:
+  - name: catalogue
+    connect_timeout: 0.25s
+    type: strict_dns
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: catalogue
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: catalogueservice
+                port_value: 80
+  - name: basket
+    connect_timeout: 0.25s
+    type: strict_dns
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: basket
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: basketservice
+                port_value: 80
+  - name: order
+    connect_timeout: 0.25s
+    type: strict_dns
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: order
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: orderservice
+                port_value: 80

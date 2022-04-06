@@ -1,0 +1,35 @@
+@import '../variables';
+
+.esh-pager {
+    &-wrapper {
+        padding-top: 1rem;
+        text-align: center;
+    }
+
+    &-item {
+        $margin: 5vw;
+        margin: 0 £margin;
+
+        &.is-disabled {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        &--navigable {
+            cursor: pointer;
+            display: inline-block;
+
+            &:hover {
+                color: $color-secondary;
+            }
+        }
+
+        @media screen and (max-width: $media-screen-large) {
+            font-size: $font-size-small;
+        }
+
+        @media screen and (max-width: $media-screen-medium) {
+            margin: 0 $margin / 2;
+        }
+    }
+}

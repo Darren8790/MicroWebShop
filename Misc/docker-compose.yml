@@ -1,0 +1,61 @@
+version: '3.4'
+services:
+
+  seq:
+    image: datalust/seq:latest
+
+  sqldata:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+
+  basketdata:
+    image: redis:alpine
+
+  # rabbitmq:
+  #   image: rabbitmq:3-management-alpine
+
+  identityservice:
+    image: identityservice
+    # image: ${REGISTRY:-microwebshop}/identityservice:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Services/IdentityService/Dockerfile
+    depends_on:
+      - sqldata
+
+  basketservice:
+    image: basketservice
+    # image: ${REGISTRY:-microwebshop}/basketservice:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Services/BasketService/Dockerfile
+    depends_on:
+      - basketdata
+      - identityservice
+
+  catalogservice:
+    image: catalogueservice
+    # image: ${REGISTRY:-microwebshop}/catalogueservice:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Services/CatalogueService/Dockerfile
+    depends_on:
+      - sqldata
+
+  orderservice:
+    image: orderservice
+    # image: ${REGISTRY:-microwebshop}/orderservice:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Services/OrderService/Dockerfile
+    depends_on:
+      - sqldata
+
+  webmvc:
+    image:  webmvc
+    # image: ${REGISTRY:-microwebshop}/webmvc:${PLATFORM:-linux}-${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Web/WebMVC/Dockerfile
+  
+  webshoppingapigw:
+    image: envoyproxy/envoy:v1.11.1

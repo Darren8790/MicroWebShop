@@ -1,0 +1,136 @@
+version: '3.4'
+services:
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - SA_PASSWORD=Pass@word
+      - ACCEPT_EULA=Y
+    ports:
+      - "1433:1433"
+    volumes:
+      - microwebshop-mssql:/var/opt/mssql
+
+  basketdata:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - microwebshop-basketdata:/data
+
+  identityservice:
+    image: darren8790/identityservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - ConnectionString=${MICROWEBSHOP_IDENTITY_DB:-Server=mssql;Database=MicroWebShop.Service.IdentityDb;User Id=sa;Password=Pass@word}
+      - MvcClient=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5100
+      - BasketApiClient=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5103
+      - OrderApiClient=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5102
+      - UseCustomizationData=True
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+    ports:
+      - "5105:80"
+    build:
+      context: .
+      dockerfile: Services/IdentityService/Dockerfile
+    depends_on:
+      - mssql
+
+  basketservice:
+    image: darren8790/basketservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - ConnectionString=${MICROWEBSHOP_REDIS_BASKET_DB:-basketdata}
+      - identityUrl=http://identityservice
+      - IdentityUrlExternal=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5105
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - UseLoadTest=${USE_LOADTEST:-False}
+      - PATH_BASE=/basketservice
+    ports:
+      - "5103:80"
+    build:
+      context: .
+      dockerfile: Services/BasketService/Dockerfile
+    depends_on:
+      - basketdata
+      - identityservice
+
+  catalogservice:
+    image: darren8790/catalogueservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionString=${MICROWEBSHOP_CATALOG_DB:-Server=mssql;Database=MicroWebShop.Services.CatalogueDb;User Id=sa;Password=Pass@word}
+      - PicBaseUrl=${MICROWEBSHOP_STORAGE_CATALOG_URL}
+      - UseCustomizationData=True
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - PATH_BASE=/catalogueservice
+    ports:
+      - "5101:80"
+    build:
+      context: .
+      dockerfile: Services/CatalogueService/Dockerfile
+    depends_on:
+      - mssql
+
+  orderservice:
+    image: darren8790/orderservice
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - ConnectionString=${MICROWEBSHOP_ORDERING_DB:-Server=mssql;Database=MicroWebShop.Services.OrderDb;User Id=sa;Password=Pass@word}
+      - identityUrl=http://identityservice
+      - IdentityUrlExternal=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5105
+      - UseCustomizationData=True
+      - CheckUpdateTime=30000
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - UseLoadTest=${USE_LOADTEST:-False}
+      - Serilog__MinimumLevel__Override__orderservice=Verbose
+      - PATH_BASE=/orderservice
+    ports:
+      - "5102:80"
+    build:
+      context: .
+      dockerfile: Services/OrderService/Dockerfile
+    depends_on:
+      - mssql
+
+  webmvc:
+    image:  darren8790/webmvc
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      # - PurchaseUrl=http://webshoppingapigw
+      - IdentityUrl=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5105
+      - IdentityUrlHC=http://identityservice/hc
+      - UseCustomizationData=True
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - UseLoadTest=${USE_LOADTEST:-False}
+    ports:
+      - "5100:80"
+    build:
+      context: .
+      dockerfile: Web/WebMVC/Dockerfile
+  
+  # webshoppingapigw:
+  #   image: envoyproxy/envoy:v1.11.1
+  #   environment:
+  #     - ASPNETCORE_ENVIRONMENT=Development
+  #     - IdentityUrl=http://identityservice             #Local: You need to open your local dev-machine firewall at range 5100-5110.
+  #   ports:
+  #     - "5202:80"   # Important: In a production environment your should remove the external port (5202) kept here for microservice debugging purposes.
+  #                   # The API Gateway redirects and access through the internal port (80).
+  #   volumes:
+  #     - ./ApiGateway/Envoy:/app/configuration
+
+volumes:
+  microwebshop-mssql:
+    external: false
+  microwebshop-basketdata:
+    external: false

@@ -1,0 +1,113 @@
+version: '3.4'
+
+# The Production docker-compose file has to have the external/real IPs or DNS names for the services
+# The ESHOP_PROD_EXTERNAL_DNS_NAME_OR_IP environment variable is taken, by default, from the ".env" file defined like:
+#     ESHOP_PROD_EXTERNAL_DNS_NAME_OR_IP=192.168.88.248
+# but values present in the environment vars at runtime will always override those defined inside the .env file
+# An external IP or DNS name has to be used when testing the Web apps and the Xamarin apps from remote machines/devices using the same WiFi, for instance.
+#
+# IMPORTANT: Note that this compose file uses ESHOP_PROD_EXTERNAL_DNS_NAME_OR_IP instead of ESHOP_EXTERNAL_DNS_NAME_OR_IP
+
+# Set ASPNETCORE_ENVIRONMENT= Development or Production, depending if you want to show up errors while testing.
+#
+# You need to start it with the following CLI command:
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+services:
+
+  basketservice:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - ConnectionString=${MICROWEBSHOP_REDIS_BASKET_DB:-basket.data}
+      - identityUrl=http://identityservice             #Local: You need to open your local dev-machine firewall at range 5100-5110.
+      - IdentityUrlExternal=http://${MICROWEBSHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}:5243
+      - AzureServiceBusEnabled=False
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - UseLoadTest=${USE_LOADTEST:-False}
+
+    ports:
+      - "80"   # The API Gateway redirects and access through the internal port (80).
+
+  catalogueservice:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - ConnectionString=${MICROWEBSHOP_CATALOG_DB:-Server=sqldata;Database=MicroWebShop.Services.CatalogueDb;User Id=sa;Password=Pass@word}
+      - PicBaseUrl=${MICROWEBSHOP_STORAGE_CATALOG_URL}
+      - UseCustomizationData=True
+      - AzureServiceBusEnabled=False
+      - AzureStorageEnabled=False
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+    ports:
+      - "80"   # The API Gateway redirects and access through the internal port (80).
+
+  identityservice:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - ConnectionString=${MICROWEBSHOP_IDENTITY_DB:-Server=sqldata;Database=MicroWebShop.Service.IdentityDb;User Id=sa;Password=Pass@word}
+      - MvcClient=http://${MICROWEBSHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}:5294              #Local: You need to open your local dev-machine firewall at range 5100-5110.
+      - BasketApiClient=http://${MICROWEBSHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}:5260
+      - OrderApiClient=http://${MICROWEBSHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}:5270
+      - UseCustomizationData=True
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+    ports:
+      - "5243:80"
+
+  orderservice:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - ConnectionString=${MICROWEBSHOP_ORDER_DB:-Server=sqldata;Database=MicroWebShop.Services.OrderDb;User Id=sa;Password=Pass@word}
+      - identityUrl=http://identityservice              #Local: You need to open your local dev-machine firewall at range 5100-5110.
+      - IdentityUrlExternal=http://${MICROWEBSHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}:5243
+      - UseCustomizationData=True
+      - AzureServiceBusEnabled=False
+      - CheckUpdateTime=30000
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - UseLoadTest=${USE_LOADTEST:-False}
+    ports:
+      - "80"   # The API Gateway redirects and access through the internal port (80).
+
+  webmvc:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - PurchaseUrl=http://webshoppingapigw
+      - IdentityUrl=http://10.0.75.1:5243  # Local Mac: Use http://docker.for.mac.localhost:5105 || Local Windows:  Use 10.0.75.1 in a "Docker for Windows" environment, if using "localhost" from browser. || #Remote access: Use ${ESHOP_PROD_EXTERNAL_DNS_NAME_OR_IP} if using external IP or DNS name from browser.
+      - CatalogueUrlHC=http://catalogueservice/hc
+      - OrderUrlHC=http://orderservice/hc
+      - IdentityUrlHC=http://identityservice/hc     #Local: Use ${ESHOP_PROD_EXTERNAL_DNS_NAME_OR_IP}, if using external IP or DNS name from browser.
+      - BasketUrlHC=http://basketservice/hc
+      - UseCustomizationData=True
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - UseLoadTest=${USE_LOADTEST:-False}
+    ports:
+      - "5294:80"
+
+  sqldata:
+    environment:
+      - SA_PASSWORD=Pass@word
+      - ACCEPT_EULA=Y
+    ports:
+      - "1440:1433"    # Important: In a production environment your should remove the external port
+
+  basket.data:
+    ports:
+      - "6379:6379"    # Important: In a production environment your should remove the external port
+
+  webshoppingapigw:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - IdentityUrl=http://identityservice             #Local: You need to open your local dev-machine firewall at range 5100-5110.
+    ports:
+      - "5202:80"   # Important: In a production environment your should remove the external port (5202) kept here for microservice debugging purposes.
+                    # The API Gateway redirects and access through the internal port (80).
+    volumes:
+      - ./ApiGateway/Envoy:/app/configuration

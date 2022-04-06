@@ -1,0 +1,15 @@
+@model WebMVC.ViewModels.CatalogueItem
+
+<form asp-controller="Basket" asp-action="AddToBasket">
+    <img class="esh-catalogue-thumbnail" src="@Model.PictureUri"/>
+    <input class="esh-catalogue-button @((!User.Identity.IsAuthenticated) ? "is-disabled" : "")" type="submit" value="[ ADD TO BASKET ]"/>
+    @* <input class="esh-catalogue-button" type="submit" value="[ ADD TO BASKET ]"/> *@
+
+    <div class="esh-catalogue-name">
+        <span>@Model.Name</span>
+    </div>
+    <div class="esh-catalogue-price">
+        <span>@Model.Price.ToString("N2")</span>
+    </div>
+    <input type="hidden" asp-for="@Model.Id" name="id"/>
+</form>

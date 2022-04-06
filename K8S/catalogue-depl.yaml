@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogue-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalogueservice
+  template:
+    metadata:
+      labels:
+        app: catalogueservice
+    spec:
+      containers:
+        - name: catalogueservice
+          image: darren8790/catalogueservice:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalogue-clusterip-srv
+spec:
+  type: ClusterIP
+  selector:
+    app: catalogueservice
+  ports:
+  - name: catalogueservice
+    protocol: TCP
+    port: 80
+    targetPort: 80

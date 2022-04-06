@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orderservice
+  template:
+    metadata:
+      labels:
+        app: orderservice
+    spec:
+      containers:
+        - name: orderservice
+          image: darren8790/orderservice:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-clusterip-srv
+spec:
+  type: ClusterIP
+  selector:
+    app: orderservice
+  ports:
+  - name: orderservice
+    protocol: TCP
+    port: 80
+    targetPort: 80

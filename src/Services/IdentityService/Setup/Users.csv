@@ -1,0 +1,2 @@
+FirstName,LastName,Street,City,Country,PostCode,UserName,Email,NormalizedEmail,NormalizedUserName,Password
+Demouser,Demolast,123 Street,Edinburgh,Scotland,EH14 1DJ,demouser@test.com,demouser@test.com,DEMOUSER@TEST.COM,DEMOUSER@TEST.COM,Pass@word1

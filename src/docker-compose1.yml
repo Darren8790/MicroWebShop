@@ -1,0 +1,45 @@
+version: '1'
+services:
+  envoygateway:
+    build: ApiGateway/Envoy
+    ports:
+      - "9901:9901"
+      - "10000:10000"
+    volumes:
+      - ./ApiGateway/Envoy/envoy.yaml:/etc/envoy/envoy.yaml
+  catalogueservice:
+    build: Services/CatalogueService/
+    ports:
+      - "8080:80"
+      - "8081:443"
+    environment:
+      ASPNETCORE_URLS: "https://+;http://+"
+      ASPNETCORE_HTTPS_PORT: "8081"
+      ASPNETCORE_ENVIROMENT: "Development"
+    volumes:
+      - ${APPDATA}\microsoft\UserSecrets\:/root/.microsoft/usersecrets
+      - ${USERPROFILE}\.aspnet\https:/root/.aspnet/https/
+  basketservice:
+    build: Services/BasketService/
+    ports:
+      - "8082:80"
+      - "8083:443"
+    enviroment:
+      ASPNETCORE_URLS: "https://+;http://+"
+      ASPNETCORE_HTTPS_PORT: "8083"
+      ASPNETCORE_ENVIROMENT: "Development"
+    volumes:
+      - ${APPDATA}\microsoft\UserSecrets\:/root/.microsoft/usersecrets
+      - ${USERPROFILE}\.aspnet\https:/root/.aspnet/https/
+  webmvc:
+    build: Web/WebMVC/
+    ports:
+      - "8087:80"
+      - "8088:443"
+    environment:
+      ASPNETCORE_URLS: "https://+;http://+"
+      ASPNETCORE_HTTPS_PORT: "8088"
+      ASPNETCORE_ENVIROMENT: "Development"
+    volumes:
+      - ${APPDATA}\microsoft\UserSecrets\:/root/.microsoft/usersecrets
+      - ${USERPROFILE}\.aspnet\https:/root/.aspnet/https/

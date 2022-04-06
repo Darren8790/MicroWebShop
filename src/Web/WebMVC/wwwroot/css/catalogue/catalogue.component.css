@@ -1,0 +1,118 @@
+.esh-catalogue-title {
+    position: relative;
+    top: 75px;
+    background-color: aliceblue;
+    color: red;
+}
+
+.esh-catalogue-filters {
+    background-color: aliceblue;
+    height: 65px;
+}
+
+.esh-catalogue-filter {
+    background-color: aqua;
+    border-color: turquoise;
+    color: white;
+    cursor: pointer;
+    margin-right: 1rem;
+    margin-top: .5rem;
+    min-width: 140px;
+    outline-color: aquamarine;
+    padding-bottom: 0;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 1.5rem;
+}
+
+.esh-catalogue-filter option {
+    background-color: aliceblue;
+}
+
+.esh-catalogue-label {
+    display: inline-block;
+    position: relative;
+    z-index: 0;
+}
+
+.esh-catalogue-label::before {
+    color: grey;
+    content: attr(data-title);
+    font-size: 0.65rem;
+    margin-left: 0.5rem;
+    margin-top: 0.65;
+    position: absolute;
+    right: 1.5rem;
+    top: 2.5rem;
+    width: 10px;
+    z-index: 1;
+}
+
+.esh-catalogue-items {
+    margin-top: 1rem;
+}
+
+.esh-catalogue-item {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    width: 33%;
+    display: inline-block;
+    float: none !important;
+}
+
+@media  screen and (max-width: 1024px) {
+    .esh-catalogue-item{
+        width: 50%;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .esh-catalogue-item{
+        width: 100%;
+    }
+}
+
+.esh-catalogue-thumbnail {
+    max-width: 370px;
+    width: 100%;
+}
+
+.esh-catalogue-button {
+    background-color: rgb(52, 52, 219);
+    border: 0;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    height: 3rem;
+    margin-top: 1rem;
+    transition: all 0.35s;
+    width: 80%;
+}
+
+.esh-catalogue-button:hover {
+    background-color: blueviolet;
+    transition: all 0.35s;
+}
+
+.esh-catalogue-button.is-disabled {
+    opacity: .5;
+    pointer-events: none;
+}
+
+.esh-catalogue-name {
+    font-size: 1rem;
+    font-weight: 300;
+    margin-top: .5rem;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.esh-catalogue-price {
+    font-size: 28px;
+    font-weight: 900;
+    text-align: center;
+}
+
+.esh-catalogue-price::before {
+    content: '£';
+}

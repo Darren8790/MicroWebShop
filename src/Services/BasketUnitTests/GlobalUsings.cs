@@ -1,0 +1,13 @@
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Mvc;
+global using Moq;
+global using System;
+global using System.Collections.Generic;
+global using System.Threading.Tasks;
+global using Xunit;
+global using BasketService.Controllers;
+global using IBasketIdentityService = BasketService.Services.IUserIdentity;
+global using WebMVC.Controllers;
+global using WebMVC.Services;
+global using WebMVC.ViewModels;
+global using BasketModel = WebMVC.ViewModels.Basket;

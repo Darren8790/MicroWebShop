@@ -1,0 +1,107 @@
+version: '3.4'
+
+# The default docker-compose.override file can use the "localhost" as the external name for testing web apps within the same dev machine.
+# The ESHOP_EXTERNAL_DNS_NAME_OR_IP environment variable is taken, by default, from the ".env" file defined like:
+#     ESHOP_EXTERNAL_DNS_NAME_OR_IP=localhost
+# but values present in the environment vars at runtime will always override those defined inside the .env file
+# An external IP or DNS name has to be used (instead localhost and the 10.0.75.1 IP) when testing the Web apps and the Xamarin apps from remote machines/devices using the same WiFi, for instance.
+
+services:
+  seq:
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - "5340:80"
+
+  sqldata:
+    environment:
+      - SA_PASSWORD=Pass@word
+      - ACCEPT_EULA=Y
+    ports:
+      - "1433:1433"
+    volumes:
+      - microwebshop-sqldata:/var/opt/mssql
+
+  basketdata:
+    ports:
+      - "6379:6379"
+    volumes:
+      - microwebshop-basketdata:/data
+
+  identityservice:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - ConnectionString=${MICROWEBSHOP_IDENTITY_DB:-Server=sqldata;Database=MicroWebShop.Service.IdentityDb;User Id=sa;Password=Pass@word}
+      - MvcClient=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5294
+      - BasketApiClient=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5260
+      - OrderApiClient=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5270
+      - UseCustomizationData=True
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+    ports:
+      - "5243:80"
+
+  basketservice:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - ConnectionString=${MICROWEBSHOP_REDIS_BASKET_DB:-basketdata}
+      - identityUrl=http://identityservice
+      - IdentityUrlExternal=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5243
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - UseLoadTest=${USE_LOADTEST:-False}
+      - PATH_BASE=/basketservice
+    ports:
+      - "5260:80"
+
+  catalogueservice:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionString=${MICROWEBSHOP_CATALOG_DB:-Server=sqldata;Database=MicroWebShop.Services.CatalogueDb;User Id=sa;Password=Pass@word}
+      - PicBaseUrl=${MICROWEBSHOP_STORAGE_CATALOG_URL}
+      - UseCustomizationData=True
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - PATH_BASE=/catalogueservice
+    ports:
+      - "5250:80"
+
+  orderservice:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - ConnectionString=${MICROWEBSHOP_ORDERING_DB:-Server=sqldata;Database=MicroWebShop.Services.OrderDb;User Id=sa;Password=Pass@word}
+      - identityUrl=http://identityservice
+      - IdentityUrlExternal=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5243
+      - UseCustomizationData=True
+      - CheckUpdateTime=30000
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - UseLoadTest=${USE_LOADTEST:-False}
+      - Serilog__MinimumLevel__Override__orderservice=Verbose
+      - PATH_BASE=/orderservice
+    ports:
+      - "5270:80"
+
+  webmvc:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
+      - PurchaseUrl=http://webshoppingapigw
+      - IdentityUrl=http://${MICROWEBSHOP_EXTERNAL_DNS_NAME_OR_IP}:5243
+      - IdentityUrlHC=http://identityservice/hc
+      - UseCustomizationData=True
+      - ApplicationInsights__InstrumentationKey=${INSTRUMENTATION_KEY}
+      - OrchestratorType=${ORCHESTRATOR_TYPE}
+      - UseLoadTest=${USE_LOADTEST:-False}
+    ports:
+      - "5294:80"
+
+volumes:
+  microwebshop-sqldata:
+    external: false
+  microwebshop-basketdata:
+    external: false
+

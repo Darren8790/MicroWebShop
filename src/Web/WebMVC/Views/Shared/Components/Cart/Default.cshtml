@@ -1,0 +1,15 @@
+@model WebMVC.ViewModels.BasketViewModels.BasketComponentViewModel
+
+@{
+    ViewData["Title"] = "Basket";
+}
+@* @Model.Disabled" *@
+<a class="esh-basketstatus" asp-area="" asp-controller="Basket" asp-action="Index">
+    Basket @Model.ItemsCount
+    @* <div class="esh-basketstatus-image">
+        Basket Image
+    </div>
+    <div class="esh-basketstatus-badge">
+        @Model.ItemsCount
+    </div> *@
+</a>

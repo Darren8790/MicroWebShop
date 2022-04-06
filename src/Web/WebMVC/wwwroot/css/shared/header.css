@@ -1,0 +1,18 @@
+.esh-header {
+    background-color: rgb(52, 52, 219);
+    height: 4rem;
+}
+
+.esh-header-back {
+    color: darkgray;
+    line-height: 4rem;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.65s;
+}
+
+.esh-header-back:hover {
+    color: white;
+    transition: color 0.35s;
+}
+

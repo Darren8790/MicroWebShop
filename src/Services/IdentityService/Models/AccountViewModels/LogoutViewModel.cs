@@ -1,0 +1,7 @@
+namespace IdentityService.Models.AccountViewModels
+{
+    public record LogoutViewModel
+    {
+        public string LogoutId { get; set; }
+    }
+}

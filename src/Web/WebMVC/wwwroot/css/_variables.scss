@@ -1,0 +1,51 @@
+$color-background-dark: rgb(107, 107, 107);
+$color-background-darker: rgb(0, 0, 0);
+$color-background-bright: rgb(230, 230, 230);
+$color-background-brighter: rgb(255, 255, 255);
+
+$color-foreground-dark: rgb(107, 107, 107);
+$color-foreground-darker: rgb(0, 0, 0);
+$color-foreground-bright: rgb(230, 230, 230);
+$color-foreground-brighter: rgb(255, 255, 255);
+
+$color-warning: rgb(240, 0, 0);
+$color-warning-dark: darken($color-warning, 5%);
+$color-warning-light: lighten($color-warning, 10%);
+
+$color-secondary: rgb(52, 52, 219);
+$color-secondary-dark: darken($color-secondary, 5%);
+$color-secondary-darker: darken($color-secondary, 20%);
+$color-secondary-bright: lighten($color-secondary, 10%);
+$color-secondary-dark: lighten($color-secondary, 20%);
+
+$font-weight-light: 200;
+$font-weight-semilight: 300;
+$font-weight-normal: 400;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+$font-size-xsmall: .65rem;
+$font-size-small: .85rem;
+$font-size-medium: 1rem;
+$font-size-large: 1.25rem;
+$font-size-xlarge: 1.5rem;
+
+$border-light: 1px;
+$border-bold: 2px;
+
+$animation-speed-default: .35s;
+$animation-speed-slow: .5s;
+$animation-speed-fast: .15s;
+
+$media-screen-xxsmall: 360px;
+$media-screen-xsmall: 640px;
+$media-screen-small: 768px;
+$media-screen-medium: 1024px;
+$media-screen-large: 1280px;
+$media-screen-xlarge: 1440px;
+$media-screen-xxlarge: 1680px;
+$media-screen-xxxlarge: 1920px;
+
+$image_path: '../../images/';
+$image-banner: '';
+$image-arrow-down: '';
